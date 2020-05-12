@@ -1,12 +1,12 @@
-num = input("정수 입력: ")
-num2=len(num)
-num = int(num)
+import tkinter as tk
+from tkinter import ttk 
 
-b = []
+style = ttk.Style()
+style.theme_use('alt')
+style.configure('TButton', background = 'red', foreground = 'white', width = 20, borderwidth=1, focusthickness=3, focuscolor='none')
+style.map('TButton', background=[('active','red')])
 
-for i in range(2*num2+num2):
-    b.append(num%2)
-    num=num//2
-    if  num <= 0:
-        break
-print(b)
+root = tk.Tk()
+button = ttk.Button(root,text='Quit', style="TButton")
+button.place(relx=0.3,rely=0.4)  
+root.mainloop()   
