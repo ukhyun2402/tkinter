@@ -9,13 +9,18 @@ def ToRGB(rgb):
 
 def hover(e):
     e.widget.configure(bg= ToRGB((230,230,230)),bd=0)
-
+    print(len(e.widget.winfo_children()))
     for i in e.widget.winfo_children():
+        if( type(i) == None):
+            print("?")
         print(i)
         i.configure(bg= ToRGB((230,230,230)),bd=0).pack(side=LEFT,padx=10,pady=8)
 
 def leave(e):
     e.widget.configure(bg = "white",bd=0)
+    for i in e.widget.winfo_children():
+        print(i)
+        i.configure(bg= 'white',bd=0).pack(side=LEFT,padx=10,pady=8)
 
 # class
 class uFrame(Frame):
@@ -149,8 +154,8 @@ for i in range(20):
         tmp = PhotoImage(file = path)
         Label(frames[-1],image = tmp,bd=0,bg="white").pack(side=LEFT,padx=10,pady=8)
     else:
-        Label(frames[-1],image = defaultProfileImg,bg="white").pack(side=LEFT,padx=10,pady=8)
-        Label(frames[-1],image = defaultProfileImg,bg="white").pack(side=LEFT,padx=10,pady=8)
+        Label(frames[-1],image = defaultProfileImg,bd=0,bg="white").pack(side=LEFT,padx=10,pady=8)
+        # Label(frames[-1],image = defaultProfileImg,bg="white").pack(side=LEFT,padx=10,pady=8)
         # print(frames[-1].children)
     
 main.mainloop()
