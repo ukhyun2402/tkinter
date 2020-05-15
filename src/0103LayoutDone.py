@@ -1,15 +1,31 @@
 from tkinter import *
 from tkinter import ttk
+from inspect import *
+import os.path
 
+# 함수목록
+def ToRGB(rgb):
+    return "#%02x%02x%02x" % rgb 
+
+def hover(e):
+    e.widget.configure(bg= ToRGB((230,230,230)),bd=0)
+
+    for i in e.widget.winfo_children():
+        print(i)
+        i.configure(bg= ToRGB((230,230,230)),bd=0).pack(side=LEFT,padx=10,pady=8)
+
+def leave(e):
+    e.widget.configure(bg = "white",bd=0)
+
+# class
 class uFrame(Frame):
     def __init__(self, parent, *args, **kw):
         Frame.__init__(self, parent, *args, **kw)            
 
         # create a canvas object and a vertical scrollbar for scrolling it
         vscrollbar = Scrollbar(self, orient=VERTICAL)
-        vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
-        # canvas = Canvas(self,bg="black", bd=0, highlightthickness=0,yscrollcommand=vscrollbar.set)
-        canvas = Canvas(self,bg="black", bd=0, highlightthickness=0)
+        vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE,)
+        canvas = Canvas(self,bg="white", bd=0, highlightthickness=0)
         canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
         vscrollbar.config(command=canvas.yview)
         
@@ -42,10 +58,8 @@ class uFrame(Frame):
         def _on_mousewheel(event):
             canvas.yview_scroll(round(-1*(event.delta/120)), "units")
         canvas.bind_all("<MouseWheel>",_on_mousewheel)
-        
 
-def ToRGB(rgb):
-    return "#%02x%02x%02x" % rgb 
+
 
 #create main window
 main = Tk()
@@ -108,12 +122,12 @@ mainFrame = Frame(main)
 mainFrame.pack(fill = BOTH, side=TOP, expand = YES)
 
 # Top Frame inner Main Frame
-topFrame = Frame(mainFrame, bg = "red",height=50)
-topFrame.pack(fill=X,side=TOP,ipady = 15)
+topFrame = Frame(mainFrame, bg = "white",height=50)
+topFrame.pack(fill=X,side=TOP,ipady = 8)
 
-bLabel = Label(topFrame,text="User",bg="red").pack(side=LEFT,anchor = S)
-cLabel = Label(topFrame,text="HELLO",bg="blue").pack(side=RIGHT,ipadx = 10,anchor = S)
-cLabel = Label(topFrame,text="HELLO",bg="white").pack(side=RIGHT, ipadx = 10,anchor = S)
+bLabel = Label(topFrame,text="채팅",font=("맑은 고딕",17,"bold"),bg="white").pack(side=LEFT,anchor = S,padx=10,pady=10)
+cLabel = Label(topFrame,text="HELLO",bg="white").pack(side=RIGHT,ipadx = 10,anchor = S,pady=5)
+cLabel = Label(topFrame,text="HELLO",bg="white").pack(side=RIGHT, ipadx = 10,anchor = S,pady=5)
 
 userFrame = uFrame(mainFrame, bg="blue")
 userFrame.pack(fill=BOTH,side=TOP,expand = YES)
@@ -121,8 +135,22 @@ userFrame.pack(fill=BOTH,side=TOP,expand = YES)
 # User List Frame
 frames = []
 
-for i in range(20):
-    frames.append(Frame(userFrame.interior,height=50,bd = 5,highlightbackground="red", highlightcolor="red", highlightthickness=1))
-    frames[-1].pack(fill=X)
+defaultProfileImg = PhotoImage(file = r'./img/default.png')
 
+for i in range(20):
+    frames.append(Frame(userFrame.interior,bg="white",bd=0))
+    frames[-1].pack(fill=X)
+    frames[-1].bind("<Enter>",hover)
+    frames[-1].bind("<Leave>",leave)
+
+    #load user information
+    path = r"./img/default.png"
+    if(not os.path.isfile(path)):
+        tmp = PhotoImage(file = path)
+        Label(frames[-1],image = tmp,bd=0,bg="white").pack(side=LEFT,padx=10,pady=8)
+    else:
+        Label(frames[-1],image = defaultProfileImg,bg="white").pack(side=LEFT,padx=10,pady=8)
+        Label(frames[-1],image = defaultProfileImg,bg="white").pack(side=LEFT,padx=10,pady=8)
+        # print(frames[-1].children)
+    
 main.mainloop()
