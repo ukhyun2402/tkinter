@@ -2,6 +2,8 @@ from tkinter import *
 from tkinter import ttk
 from inspect import *
 
+import re
+
 import os.path
 
 from PIL import Image,ImageTk,ImageDraw
@@ -39,6 +41,16 @@ def click(e):
     e.widget.configure(bg = ToRGB((220,220,220)))
     for i in e.widget.children.values():
         i.configure(bg=ToRGB((220,220,220)))
+
+def onMouseWheel(e):
+    # print(e.widget)
+    if(re.match(r".+frame*[0-9]*$",str(e.widget))):
+        e.widget.master.master.yview_scroll(round(-1*(e.delta/120)), "units")
+        # print(e.widget.master.master)
+    elif(str(e.widget).endswith('canvas')):
+        # print(e.widget)
+        e.widget.yview_scroll(round(-1*(e.delta/120)), "units")
+
 
 # class
 class uFrame(Frame):
@@ -80,10 +92,48 @@ class uFrame(Frame):
                 canvas.itemconfigure(interior_id, width=canvas.winfo_width())
         canvas.bind('<Configure>', _configure_canvas)
 
-        def _on_mousewheel(event):
-            canvas.yview_scroll(round(-1*(event.delta/120)), "units")
-        canvas.bind_all("<MouseWheel>",_on_mousewheel)
+        canvas.bind_all("<MouseWheel>",onMouseWheel)
 
+class cFrame(Frame):
+    def __init__(self, parent, *args, **kw):
+        Frame.__init__(self, parent, *args, **kw)            
+
+        # create a canvas object and a vertical scrollbar for scrolling it
+        vscrollbar = Scrollbar(self, orient=VERTICAL)
+        vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
+
+        canvas = Canvas(self,bg="red", bd=0, highlightthickness=0)
+        canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
+
+        vscrollbar.config(command=canvas.yview)
+        
+        # reset the view
+        canvas.xview_moveto(0)
+        canvas.yview_moveto(0)
+        
+        # create a frame inside the canvas which will be scrolled with it
+        self.interior = interior = Frame(canvas)
+        interior_id = canvas.create_window(0, 0, window=interior,anchor=NW)
+
+        canvas.config(xscrollcommand = vscrollbar.set, yscrollcommand = vscrollbar.set, scrollregion = (0, 0, 100, 100))
+        # track changes to the canvas and frame width and sync them,
+        # also updating the scrollbar
+        def _configure_interior(event):
+            # update the scrollbars to match the size of the inner frame
+            size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
+            canvas.config(scrollregion="0 0 %s %s" % size)
+            if interior.winfo_reqwidth() != canvas.winfo_width():
+                # update the canvas's width to fit the inner frame
+                canvas.config(width=interior.winfo_reqwidth())
+        interior.bind('<Configure>', _configure_interior)
+
+        def _configure_canvas(event):
+            if interior.winfo_reqwidth() != canvas.winfo_width():
+                # update the inner frame's width to fill the canvas
+                canvas.itemconfigure(interior_id, width=canvas.winfo_width())
+        canvas.bind('<Configure>', _configure_canvas)
+
+        canvas.bind_all("<MouseWheel>",onMouseWheel)
 
 
 #create main window
@@ -120,8 +170,15 @@ def leaveChatBtn(e):
 def _on_press(e):
     userBtn['relief'] = SUNKEN
 
+    chatFrame.pack_forget()
+    userFrame.pack(fill=BOTH,side=TOP,expand = 1)
+
 def _on_press1(e):
     chatBtn['relief'] = SUNKEN
+
+    userFrame.pack_forget()
+    chatFrame.pack(fill=BOTH,side=TOP,expand = 1)
+
 
 
 #create navigationBar
@@ -196,4 +253,41 @@ for i in range(len(a)):
     else:
         Label(frames[-1],image = defaultProfileImg,bd=0,bg='white').pack(side=LEFT,padx=10,pady=8)
     
+chatFrame = cFrame(mainFrame)
+
+Button(NavigationBar,text="dsadsa",command = lambda : chatFrame.destroy()).pack()
+frames.clear()
+
+for i in range(len(a)):
+    frames.append(Frame(chatFrame.interior,bd=0,bg="white"))
+    frames[-1].pack(fill=BOTH,side=TOP)
+    frames[-1].bind("<Enter>",hover)
+    frames[-1].bind("<Leave>",leave)
+    frames[-1].bind("<1>",click)
+
+    #load user information
+    path = "./img/"+a[i][6]
+
+    if(os.path.isfile(path)):
+        img=Image.open(path).convert("RGB")
+        npImage=np.array(img)
+        h,w=img.size
+        # Create same size alpha layer with circle
+        alpha = Image.new('L', img.size,0)
+        draw = ImageDraw.Draw(alpha)
+        draw.pieslice([0,0,h,w],0,360,fill=255)
+        # Convert alpha Image to numpy array
+        npAlpha=np.array(alpha)
+        # Add alpha layer to RGB
+        npImage=np.dstack((npImage,npAlpha))
+        # Save with alpha
+        imgs.append(ImageTk.PhotoImage(Image.fromarray(npImage).resize((35,35),Image.ANTIALIAS)))
+        
+        #image
+        Label(frames[-1],image = imgs[-1],bd=0,bg='white').pack(side=LEFT,padx=10,pady=8)
+        #name
+        Label(frames[-1],text=a[i][1],bg='white').pack(side=LEFT,padx =12)
+    else:
+        Label(frames[-1],image = defaultProfileImg,bd=0,bg='white').pack(side=LEFT,padx=10,pady=8)
+
 main.mainloop()

@@ -18,9 +18,8 @@ mydb = mysql.connector.connect(
 
 mycursor = mydb.cursor()
 mycursor.execute("SELECT * FROM MEMBER")
-
 a = mycursor.fetchall()
-
+#--------------- End of SQL Connection --------------------#
 # 함수목록
 def ToRGB(rgb):
     return "#%02x%02x%02x" % rgb 
@@ -39,6 +38,14 @@ def click(e):
     e.widget.configure(bg = ToRGB((220,220,220)))
     for i in e.widget.children.values():
         i.configure(bg=ToRGB((220,220,220)))
+
+def onMouseWheel(e):
+    if(str(e.widget.master).endswith('canvas')):
+        e.widget.master.yview_scroll(round(-1*(e.delta/120)), "units")
+        print(e.widget.master)
+    elif(str(e.widget).endswith('canvas')):
+        e.widget.yview_scroll(round(-1*(e.delta/120)), "units")
+        print(e.widget)
 
 # class
 class uFrame(Frame):
@@ -60,9 +67,9 @@ class uFrame(Frame):
         
         # create a frame inside the canvas which will be scrolled with it
         self.interior = interior = Frame(canvas)
-        interior_id = canvas.create_window(0, 0, window=interior,anchor=NW)
+        interior_id = canvas.create_window(0, 0, window=self.interior,anchor=NW)
 
-        canvas.config(xscrollcommand = vscrollbar.set, yscrollcommand = vscrollbar.set, scrollregion = (0, 0, 100, 100))
+        canvas.config(yscrollcommand = vscrollbar.set, scrollregion = (0, 0, 100, 100))
         # track changes to the canvas and frame width and sync them,
         # also updating the scrollbar
         def _configure_interior(event):
@@ -71,7 +78,7 @@ class uFrame(Frame):
             canvas.config(scrollregion="0 0 %s %s" % size)
             if interior.winfo_reqwidth() != canvas.winfo_width():
                 # update the canvas's width to fit the inner frame
-                canvas.config(width=interior.winfo_reqwidth())
+                canvas.config(width=interior.winfo_reqwidth()-50,bg="white")
         interior.bind('<Configure>', _configure_interior)
 
         def _configure_canvas(event):
@@ -80,9 +87,53 @@ class uFrame(Frame):
                 canvas.itemconfigure(interior_id, width=canvas.winfo_width())
         canvas.bind('<Configure>', _configure_canvas)
 
-        def _on_mousewheel(event):
-            canvas.yview_scroll(round(-1*(event.delta/120)), "units")
-        canvas.bind_all("<MouseWheel>",_on_mousewheel)
+        canvas.bind_all("<MouseWheel>",onMouseWheel)
+
+class cFrame(Frame):
+    def __init__(self, parent, *args, **kw):
+        Frame.__init__(self, parent, *args, **kw)            
+
+        # 스크롤바 인스턴스 생성, 방향 수직
+        vscrollbar = Scrollbar(self, orient=VERTICAL)
+        # 스크롤바 포지셔닝, 
+        vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
+
+        # 캔버스 생성,
+        canvas = Canvas(self,bg="red", bd=0, highlightthickness=0)
+        # 캔버스 포지셔닝
+        canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
+
+        # 스크롤바 설정
+        vscrollbar.config(command=canvas.yview)
+        
+        # reset the view
+        canvas.xview_moveto(0)
+        canvas.yview_moveto(0)
+        
+        # create a frame inside the canvas which will be scrolled with it
+        self.interior = interior = Frame(canvas)
+        interior_id = self.canvas.create_window(0, 0, window=interior,anchor=NW)
+
+        canvas.config(yscrollcommand = vscrollbar.set, scrollregion = (0, 0, 100, 100))
+        # track changes to the canvas and frame width and sync them,
+        # also updating the scrollbar
+        def _configure_interior(event):
+            # update the scrollbars to match the size of the inner frame
+            size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
+            self.canvas.config(scrollregion="0 0 %s %s" % size)
+            if interior.winfo_reqwidth() != canvas.winfo_width():
+                # update the canvas's width to fit the inner frame
+                canvas.config(width=interior.winfo_reqwidth())
+        canvas.bind('<Configure>', _configure_interior)
+
+        def _configure_canvas(event):
+            if interior.winfo_reqwidth() != canvas.winfo_width():
+                # update the inner frame's width to fill the canvas
+                canvas.itemconfigure(interior_id, width=canvas.winfo_width())
+        canvas.bind('<Configure>', _configure_canvas)
+
+        canvas.bind_all("<MouseWheel>",onMouseWheel)
+
 
 
 
@@ -104,7 +155,7 @@ userImg = PhotoImage(file = r"./img/user.png")
 chatImgDef = PhotoImage(file = r"./img/chatG.png")
 chatImg = PhotoImage(file = r"./img/chat.png")
 
-# hover function
+# hovr function
 def enterUserBtn(e):
     userBtn['image'] = userImg
 
@@ -120,8 +171,14 @@ def leaveChatBtn(e):
 def _on_press(e):
     userBtn['relief'] = SUNKEN
 
+    chatFrame.pack_forget()
+    userFrame.pack(fill=BOTH,side=TOP,expand = 1)
+
 def _on_press1(e):
     chatBtn['relief'] = SUNKEN
+
+    userFrame.pack_forget()
+    chatFrame.pack(fill=BOTH,side=TOP,expand = 1)
 
 
 #create navigationBar
@@ -156,7 +213,7 @@ cLabel = Label(topFrame,text="HELLO",bg="white").pack(side=RIGHT,ipadx = 10,anch
 cLabel = Label(topFrame,text="HELLO",bg="white").pack(side=RIGHT, ipadx = 10,anchor = S,pady=5)
 
 userFrame = uFrame(mainFrame,bg="red")
-userFrame.pack(fill=BOTH,side=TOP,expand = 1,anchor = N)
+userFrame.pack(fill=BOTH,side=TOP,expand = 1)
 
 # User List Frame
 frames = []
@@ -165,7 +222,7 @@ imgs = []
 defaultProfileImg = PhotoImage(file = r'./img/default.png')
 
 for i in range(len(a)):
-    frames.append(Frame(userFrame.interior,bd=0,bg="white"))
+    frames.append(Frame(userFrame.canvas,bd=0,bg="white"))
     frames[-1].pack(fill=BOTH,side=TOP)
     frames[-1].bind("<Enter>",hover)
     frames[-1].bind("<Leave>",leave)
@@ -190,10 +247,47 @@ for i in range(len(a)):
         imgs.append(ImageTk.PhotoImage(Image.fromarray(npImage).resize((35,35),Image.ANTIALIAS)))
         
         #image
-        Label(frames[-1],image = imgs[-1],bd=0,bg='white').pack(side=LEFT,padx=10,pady=8,anchor=S)
+        Label(frames[-1],image = imgs[-1],bd=0,bg='white').pack(side=LEFT,padx=10,pady=8)
         #name
         Label(frames[-1],text=a[i][1],bg='white').pack(side=LEFT,padx =12)
     else:
         Label(frames[-1],image = defaultProfileImg,bd=0,bg='white').pack(side=LEFT,padx=10,pady=8)
-    
+
+chatFrame = cFrame(mainFrame)
+
+Button(NavigationBar,text="dsadsa",command = lambda : chatFrame.destroy()).pack()
+frames.clear()
+
+for i in range(len(a)):
+    frames.append(Frame(chatFrame.canvas,bd=0,bg="white"))
+    frames[-1].pack(fill=BOTH,side=TOP)
+    frames[-1].bind("<Enter>",hover)
+    frames[-1].bind("<Leave>",leave)
+    frames[-1].bind("<1>",click)
+
+    #load user information
+    path = "./img/"+a[i][6]
+
+    if(os.path.isfile(path)):
+        img=Image.open(path).convert("RGB")
+        npImage=np.array(img)
+        h,w=img.size
+        # Create same size alpha layer with circle
+        alpha = Image.new('L', img.size,0)
+        draw = ImageDraw.Draw(alpha)
+        draw.pieslice([0,0,h,w],0,360,fill=255)
+        # Convert alpha Image to numpy array
+        npAlpha=np.array(alpha)
+        # Add alpha layer to RGB
+        npImage=np.dstack((npImage,npAlpha))
+        # Save with alpha
+        imgs.append(ImageTk.PhotoImage(Image.fromarray(npImage).resize((35,35),Image.ANTIALIAS)))
+        
+        #image
+        Label(frames[-1],image = imgs[-1],bd=0,bg='white').pack(side=LEFT,padx=10,pady=8)
+        #name
+        Label(frames[-1],text=a[i][1],bg='white').pack(side=LEFT,padx =12)
+    else:
+        Label(frames[-1],image = defaultProfileImg,bd=0,bg='white').pack(side=LEFT,padx=10,pady=8)
+
 main.mainloop()
