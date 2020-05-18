@@ -170,11 +170,19 @@ def leaveChatBtn(e):
 def _on_press(e):
     userBtn['relief'] = SUNKEN
 
+    chatBtn['image'] = chatImgDef
+    chatBtn.bind("<Leave>", leaveChatBtn)
+    userBtn.unbind("<Leave>")
+
     chatFrame.pack_forget()
     userFrame.pack(fill=BOTH,side=TOP,expand = 1)
 
 def _on_press1(e):
     chatBtn['relief'] = SUNKEN
+    
+    userBtn['image'] = userImgDef
+    userBtn.bind("<Leave>", leaveUserBtn)
+    chatBtn.unbind("<Leave>")
 
     userFrame.pack_forget()
     chatFrame.pack(fill=BOTH,side=TOP,expand = 1)
@@ -186,7 +194,7 @@ NavigationBar = Frame(main, bg = ToRGB((249,249,249)), relief = FLAT, width = us
 NavigationBar.pack(fill = Y,side=LEFT)
 
 #Create Item in NavigationBar
-userBtn = Button(NavigationBar, image= userImgDef, relief = FLAT, bg = ToRGB((249,249,249)), bd = 0)
+userBtn = Button(NavigationBar, image= userImg, relief = FLAT, bg = ToRGB((249,249,249)), bd = 0)
 userBtn.pack(ipady = 15, ipadx = 20)
 userBtn.bind("<Enter>", enterUserBtn)
 userBtn.bind("<Leave>", leaveUserBtn)
