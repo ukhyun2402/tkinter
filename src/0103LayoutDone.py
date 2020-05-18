@@ -7,13 +7,13 @@ import os.path
 from PIL import Image,ImageTk,ImageDraw
 import numpy as np
 
-import mysql.connector
+import pymysql
 
-mydb = mysql.connector.connect(
+mydb = pymysql.connect(
     host = 'localhost',
     user = 'ukhyun',
     passwd = 'dnr68425',
-    database = 'Messenger'
+    database = 'test'
 )
 
 mycursor = mydb.cursor()
@@ -164,7 +164,7 @@ imgs = []
 
 defaultProfileImg = PhotoImage(file = r'./img/default.png')
 
-for i in range(len(a)):
+for i in range(3):
     frames.append(Frame(userFrame.interior,bd=0,bg="white"))
     frames[-1].pack(fill=BOTH,side=TOP)
     frames[-1].bind("<Enter>",hover)
