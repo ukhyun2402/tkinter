@@ -1,36 +1,34 @@
-from tkinter import *
+from tkinter import *   # from x import * is bad practice
+# from ttk import *
 
+# http://tkinter.unpythonic.net/wiki/VerticalScrolledFrame
 
-def onMouseWheel(e):
-    # print(e.widget)
-    if(re.match(r".+frame*[0-9]*$",str(e.widget))):
-        e.widget.master.master.yview_scroll(round(-1*(e.delta/120)), "units")
-        # print(e.widget.master.master)
-    elif(str(e.widget).endswith('canvas')):
-        # print(e.widget)
-        e.widget.yview_scroll(round(-1*(e.delta/120)), "units")
+class VerticalScrolledFrame(Frame):
+    """A pure Tkinter scrollable frame that actually works!
+    * Use the 'interior' attribute to place widgets inside the scrollable frame
+    * Construct and pack/place/grid normally
+    * This frame only allows vertical scrolling
 
-class uFrame(Frame):
+    """
     def __init__(self, parent, *args, **kw):
         Frame.__init__(self, parent, *args, **kw)            
 
         # create a canvas object and a vertical scrollbar for scrolling it
         vscrollbar = Scrollbar(self, orient=VERTICAL)
         vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
-
-        canvas = Canvas(self,bg="white", bd=0, highlightthickness=0,yscrollcommand=vscrollbar.set)
+        canvas = Canvas(self, bd=0, highlightthickness=0,
+                        yscrollcommand=vscrollbar.set)
         canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
-
         vscrollbar.config(command=canvas.yview)
-        
+
         # reset the view
         canvas.xview_moveto(0)
-        canvas.yview_moveto(0) 
-        
+        canvas.yview_moveto(0)
+
         # create a frame inside the canvas which will be scrolled with it
         self.interior = interior = Frame(canvas)
-        interior.pack(fill=BOTH)
-        interior_id = canvas.create_window(0, 0, window=interior,anchor=NW)
+        interior_id = canvas.create_window(0, 0, window=interior,
+                                           anchor=NW)
 
         # track changes to the canvas and frame width and sync them,
         # also updating the scrollbar
@@ -49,20 +47,22 @@ class uFrame(Frame):
                 canvas.itemconfigure(interior_id, width=canvas.winfo_width())
         canvas.bind('<Configure>', _configure_canvas)
 
-        canvas.bind_all("<MouseWheel>",onMouseWheel)
+
+if __name__ == "__main__":
+
+    class SampleApp(Tk):
+        def __init__(self, *args, **kwargs):
+            root = Tk.__init__(self, *args, **kwargs)
 
 
-main = Tk()
-main.geometry('400x600')
-fs = []
+            self.frame = VerticalScrolledFrame(root)
+            self.frame.pack()
+            self.label = Label(text="Shrink the window to activate the scrollbar.")
+            self.label.pack()
+            buttons = []
+            for i in range(2):
+                buttons.append(Button(self.frame.interior, text="Button " + str(i)))
+                buttons[-1].pack()
 
-LayoutFrame = uFrame(main)
-LayoutFrame.pack(fill=BOTH,expand=1,side=TOP)
-
-for i in range(20):
-    fs.append(Frame(LayoutFrame.interior,bg='red'))
-    fs[-1].pack(fill=X,side=TOP)
-    Label(fs[-1],text="Labeel"+str(i)).pack()
-
-
-main.mainloop()
+    app = SampleApp()
+    app.mainloop()

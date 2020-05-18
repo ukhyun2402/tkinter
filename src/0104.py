@@ -9,19 +9,19 @@ import os.path
 from PIL import Image,ImageTk,ImageDraw
 import numpy as np
 
-import mysql.connector
+import pymysql.connections
 
-mydb = mysql.connector.connect(
+db = pymysql.Connect(
     host = 'localhost',
     user = 'ukhyun',
     passwd = 'dnr68425',
-    database = 'Messenger'
+    db = 'test'
 )
 
-mycursor = mydb.cursor()
-mycursor.execute("SELECT * FROM MEMBER")
+cursor = db.cursor()
+cursor.execute("SELECT * FROM MEMBER")
 
-a = mycursor.fetchall()
+a = cursor.fetchall()
 
 # 함수목록
 def ToRGB(rgb):
@@ -61,20 +61,20 @@ class uFrame(Frame):
         vscrollbar = Scrollbar(self, orient=VERTICAL)
         vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
 
-        canvas = Canvas(self,bg="white", bd=0, highlightthickness=0)
+        canvas = Canvas(self,bg="white", bd=0, highlightthickness=0,yscrollcommand=vscrollbar.set)
         canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
 
         vscrollbar.config(command=canvas.yview)
         
         # reset the view
         canvas.xview_moveto(0)
-        canvas.yview_moveto(0)
+        canvas.yview_moveto(0) 
         
         # create a frame inside the canvas which will be scrolled with it
         self.interior = interior = Frame(canvas)
+        interior.pack(fill=BOTH)
         interior_id = canvas.create_window(0, 0, window=interior,anchor=NW)
 
-        canvas.config(xscrollcommand = vscrollbar.set, yscrollcommand = vscrollbar.set, scrollregion = (0, 0, 100, 100))
         # track changes to the canvas and frame width and sync them,
         # also updating the scrollbar
         def _configure_interior(event):
@@ -102,7 +102,7 @@ class cFrame(Frame):
         vscrollbar = Scrollbar(self, orient=VERTICAL)
         vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
 
-        canvas = Canvas(self,bg="red", bd=0, highlightthickness=0)
+        canvas = Canvas(self,bg="green", bd=0, highlightthickness=0)
         canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
 
         vscrollbar.config(command=canvas.yview)
@@ -120,11 +120,12 @@ class cFrame(Frame):
         # also updating the scrollbar
         def _configure_interior(event):
             # update the scrollbars to match the size of the inner frame
-            size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
+            size = (interior.winfo_width(), interior.winfo_height())
             canvas.config(scrollregion="0 0 %s %s" % size)
             if interior.winfo_reqwidth() != canvas.winfo_width():
                 # update the canvas's width to fit the inner frame
                 canvas.config(width=interior.winfo_reqwidth())
+                canvas.config(height = interior.winfo_reqheight())
         interior.bind('<Configure>', _configure_interior)
 
         def _configure_canvas(event):
@@ -142,7 +143,7 @@ main.title("Messenger - GoodAuction")
 # 메인 윈도우 배경 하얀색으로 지정
 main.configure(bg = 'white')
 # 윈도우 최소크기 설정
-main.minsize(400,600)
+main.minsize(400,500)
 # 기본 크기 설정 및 offset
 main.geometry('400x600+200+200')
 
@@ -172,12 +173,22 @@ def _on_press(e):
 
     chatFrame.pack_forget()
     userFrame.pack(fill=BOTH,side=TOP,expand = 1)
+    userBtn.unbind('<Leave>')
+    chatBtn['image'] = chatImgDef
+    chatBtn.bind('<Leave>',leaveChatBtn)
+    
+    topFrame.children['!label'].configure(text ="STAFF")
 
 def _on_press1(e):
     chatBtn['relief'] = SUNKEN
 
     userFrame.pack_forget()
     chatFrame.pack(fill=BOTH,side=TOP,expand = 1)
+    chatBtn.unbind('<Leave>')
+    userBtn['image'] = userImgDef
+    userBtn.bind('<Leave>',leaveUserBtn)
+
+    topFrame.children['!label'].configure(text ="CHATTING")
 
 
 
@@ -213,7 +224,7 @@ cLabel = Label(topFrame,text="HELLO",bg="white").pack(side=RIGHT,ipadx = 10,anch
 cLabel = Label(topFrame,text="HELLO",bg="white").pack(side=RIGHT, ipadx = 10,anchor = S,pady=5)
 
 userFrame = uFrame(mainFrame,bg="red")
-userFrame.pack(fill=BOTH,side=TOP,expand = 1,anchor = N)
+userFrame.pack(fill=BOTH,side=TOP,expand = 1)
 
 # User List Frame
 frames = []
@@ -221,9 +232,9 @@ imgs = []
 
 defaultProfileImg = PhotoImage(file = r'./img/default.png')
 
-for i in range(len(a)):
-    frames.append(Frame(userFrame.interior,bd=0,bg="white"))
-    frames[-1].pack(fill=BOTH,side=TOP)
+for i in range(3):
+    frames.append(Frame(userFrame.interior,bd=0,bg='white'))
+    frames[-1].pack(fill=X,side=TOP)
     frames[-1].bind("<Enter>",hover)
     frames[-1].bind("<Leave>",leave)
     frames[-1].bind("<1>",click)
@@ -255,7 +266,6 @@ for i in range(len(a)):
     
 chatFrame = cFrame(mainFrame)
 
-Button(NavigationBar,text="dsadsa",command = lambda : chatFrame.destroy()).pack()
 frames.clear()
 
 for i in range(len(a)):
