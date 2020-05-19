@@ -1,4 +1,6 @@
-def a(*args):
-    print(args)
+from src.mongoDB import *
+import inspect
 
-print(a(1,23,4,5,6,7,8))
+mong = Umongo()
+
+mong.updateMany('chatList',{"name":{"$regex":"^uk"}},{"name":"hello"})
