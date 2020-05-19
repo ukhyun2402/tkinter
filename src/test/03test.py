@@ -1,8 +1,4 @@
-from PIL import Image, ImageDraw
+def a(*args):
+    print(args)
 
-img = Image.open('./img/jail.png').convert("RGB")
-h,w = img.size
-
-alpha = Image.new('L', img.size,0)
-draw = ImageDraw.Draw(alpha)
-draw.pieslice([0,0,h,w],0,360,fill=255)
+print(a(1,23,4,5,6,7,8))
