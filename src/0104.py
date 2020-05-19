@@ -15,7 +15,7 @@ db = pymysql.Connect(
     host = 'localhost',
     user = 'ukhyun',
     passwd = 'dnr68425',
-    db = 'test'
+    db = 'Messenger'
 )
 
 cursor = db.cursor()
@@ -46,9 +46,9 @@ def onMouseWheel(e):
     # print(e.widget)
     if(re.match(r".+frame*[0-9]*$",str(e.widget))):
         e.widget.master.master.yview_scroll(round(-1*(e.delta/120)), "units")
-        # print(e.widget.master.master)
+        print(e.widget.master.master)
     elif(str(e.widget).endswith('canvas')):
-        # print(e.widget)
+        print(e.widget)
         e.widget.yview_scroll(round(-1*(e.delta/120)), "units")
 
 
@@ -92,7 +92,7 @@ class uFrame(Frame):
                 canvas.itemconfigure(interior_id, width=canvas.winfo_width())
         canvas.bind('<Configure>', _configure_canvas)
 
-        canvas.bind_all("<MouseWheel>",onMouseWheel)
+        canvas.bind("<MouseWheel>",onMouseWheel)
 
 class cFrame(Frame):
     def __init__(self, parent, *args, **kw):
@@ -134,7 +134,6 @@ class cFrame(Frame):
                 canvas.itemconfigure(interior_id, width=canvas.winfo_width())
         canvas.bind('<Configure>', _configure_canvas)
 
-        canvas.bind_all("<MouseWheel>",onMouseWheel)
 
 
 #create main window
