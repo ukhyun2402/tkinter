@@ -10,6 +10,8 @@ class SampleApp(tk.Tk):
         self.switch_frame(StartPage)
 
     def switch_frame(self, frame_class):
+        print(self.winfo_name())
+        print(self.winfo_exists())
         new_frame = frame_class(self)
         if self._frame is not None:
             self._frame.destroy()
